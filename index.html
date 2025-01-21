@@ -17,6 +17,9 @@ const dropdownLinks = document.querySelectorAll('.dropdown-link');
 const dropdownMenus = document.querySelectorAll('.dropdown-menu');
 const hamburgerButton = document.getElementById("hamburgerButton");
 
+// Media query for desktop screens
+const isDesktop = window.matchMedia('(min-width: 1024px)');
+
 // Function to show/hide dropdown
 function showDropdown(menu) {
     if (menu) {
@@ -58,7 +61,38 @@ dropdownLinks.forEach((link, index) => {
         lastClickTime: 0
     });
     
+    // Hover functionality for desktop
+    if (isDesktop.matches) {
+        link.addEventListener('mouseenter', () => {
+            dropdownMenus.forEach(m => hideDropdown(m));
+            showDropdown(menu);
+        });
+
+        // Add hover functionality to the dropdown menu itself
+        menu.addEventListener('mouseenter', () => {
+            showDropdown(menu);
+        });
+
+        // Hide dropdown when mouse leaves both link and menu
+        const hideOnMouseLeave = () => {
+            const isHoveringLink = link.matches(':hover');
+            const isHoveringMenu = menu.matches(':hover');
+            if (!isHoveringLink && !isHoveringMenu) {
+                hideDropdown(menu);
+            }
+        };
+
+        link.addEventListener('mouseleave', hideOnMouseLeave);
+        menu.addEventListener('mouseleave', hideOnMouseLeave);
+    }
+    
+    // Click functionality for mobile
     link.addEventListener('click', (e) => {
+        // If on desktop, just navigate
+        if (isDesktop.matches) {
+            return;
+        }
+
         e.preventDefault();
         const currentTime = new Date().getTime();
         const state = dropdownStates.get(link);
@@ -91,9 +125,9 @@ dropdownLinks.forEach((link, index) => {
     });
 });
 
-// Close dropdowns when clicking outside
+// Close dropdowns when clicking outside (mobile only)
 document.addEventListener('click', (e) => {
-    if (!e.target.closest('.dropdown-link') && !e.target.closest('.dropdown-menu')) {
+    if (!isDesktop.matches && !e.target.closest('.dropdown-link') && !e.target.closest('.dropdown-menu')) {
         dropdownMenus.forEach(menu => hideDropdown(menu));
         dropdownStates.forEach(state => {
             state.isOpen = false;
@@ -107,6 +141,13 @@ sidebar.addEventListener('transitionend', () => {
         dropdownMenus.forEach(menu => hideDropdown(menu));
         dropdownStates.forEach(state => state.isOpen = false);
     }
+});
+
+// Handle screen resize
+isDesktop.addEventListener('change', (e) => {
+    // Reset all dropdowns when switching between mobile and desktop
+    dropdownMenus.forEach(menu => hideDropdown(menu));
+    dropdownStates.forEach(state => state.isOpen = false);
 });
                 
       const images = ['https://via.placeholder.com/150','https://via.placeholder.com/150']
